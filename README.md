@@ -22,7 +22,7 @@ Finally - I found the linter `tflint` (https://github.com/terraform-linters/tfli
 ## Assumptions (or 'why this won't work if you just run it on a clean AWS account')
 
 * I've got a domain name setup in Route 53 already - so I've hardcoded those details into the the template (it didn't seem worth the hassle of registering _another_ domain just for this exercise.   
-* 
+* I've also got a keypair setup on this account - so I've added that to Lauch Config - this too will break a non-Tim AWS account
 
 ## The goal
 

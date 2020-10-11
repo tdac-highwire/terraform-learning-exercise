@@ -17,19 +17,27 @@ provider "aws" {
 # Networking configuration #
 #==========================#
 
+#  First we need a VPC for this project to live in 
+
 resource "aws_vpc" "tims-vpc" {
  cidr_block = "10.0.1.0/24"
 }
 
+#  We need to lookup the default security group - as we'll need it later
+
 resource "aws_default_security_group" "tims-default-security-group" {
   vpc_id = aws_vpc.tims-vpc.id
 }
+
+#  Then a Subnet needs to be created - in a 'real world' example - we'd have more than one subnet - to cover multiAZ
 
 resource "aws_subnet" "tims-subnet" {
   vpc_id     = aws_vpc.tims-vpc.id
   cidr_block = "10.0.1.0/24"
   availability_zone = "eu-west-1c"
 }
+
+#  My initial attempts couldn't see out - this was because we were missing an IGW, Route Table and Association between them (the pain of moving off 'default')
 
 resource "aws_internet_gateway" "tims-igw" {
     vpc_id = aws_vpc.tims-vpc.id
@@ -49,6 +57,8 @@ resource "aws_route_table_association" "tims-route-table-association" {
     route_table_id = aws_route_table.tims-aws-route-table.id
 }
 
+#  As we're forced to use VPC by the ELB - it makes sense to make a nice restrictive NACL rule
+
 resource "aws_network_acl" "tims-nacl" {
   vpc_id = aws_vpc.tims-vpc.id
 }
@@ -64,6 +74,8 @@ resource "aws_network_acl_rule" "tims-nacl-rule" {
   to_port        = 22
 }
 
+# NACLs are the like 'Router level' security rules - while SG's are service level firewalls - I created the rule seperate from the default.
+
 resource "aws_security_group" "tims-sg-allow-ssh" {
   name        = "tims-sg-allow-ssh"
   description = "Allow SSH inbound traffic"
@@ -78,6 +90,8 @@ resource "aws_security_group" "tims-sg-allow-ssh" {
   }
 }
 
+#  I'm used to Centos - so I picked that as a base image - I also have a predefined keypair - so I associated that too 
+
 #==========================#
 #    Auto scaling config   #
 #==========================#
@@ -87,12 +101,14 @@ resource "aws_launch_configuration" "tims-launch-configuration" {
   instance_type = "t2.micro"
   associate_public_ip_address = false
   key_name      = "incomprehensible-keypair"
-  security_groups = [aws_security_group.tims-sg-allow-ssh.id]
+  security_groups = [aws_security_group.tims-sg-allow-ssh.id,aws_default_security_group.tims-default-security-group.id]
   
   lifecycle {
     create_before_destroy = true
   }
 }
+
+#  I'm used to Centos - so I picked that as a base image - I also have a predefined keypair - so I associated that too 
 
 resource "aws_autoscaling_group" "tims-autoscaling-group" {
   name                 = "tims-autoscaling-group"
