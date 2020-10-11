@@ -46,4 +46,9 @@ Yes, security is a problem here - port 22 to 'the internet' is never clever - bu
 ## Notes
 
 It all went pretty smoothly - everything built up and plumbed together as you'd expect _apart_ from the ELB would _not_ see the instances as 'in service'
-I simplified some of the security groups - added an explicit exgress rule. 
+
+I simplified some of the security groups - added an explicit exgress rule - and this seemed to do the job.
+
+## Conclusion
+
+Terraform is very cool - and I will definately be using it in future for provisioning (alongside Ansible / Kube / Docker) 
