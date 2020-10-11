@@ -42,3 +42,8 @@ Yes, security is a problem here - port 22 to 'the internet' is never clever - bu
 `terraform apply -auto-approve` # to apply the config
 
 `terraform destroy -auto-approve` # to remove it
+
+## Notes
+
+It all went pretty smoothly - everything built up and plumbed together as you'd expect _apart_ from the ELB would _not_ see the instances as 'in service'
+I simplified some of the security groups - added an explicit exgress rule. 

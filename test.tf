@@ -23,12 +23,6 @@ resource "aws_vpc" "tims-vpc" {
  cidr_block = "10.0.1.0/24"
 }
 
-#  We need to lookup the default security group - as we'll need it later
-
-resource "aws_default_security_group" "tims-default-security-group" {
-  vpc_id = aws_vpc.tims-vpc.id
-}
-
 #  Then a Subnet needs to be created - in a 'real world' example - we'd have more than one subnet - to cover multiAZ
 
 resource "aws_subnet" "tims-subnet" {
@@ -88,6 +82,12 @@ resource "aws_security_group" "tims-sg-allow-ssh" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+    egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
 }
 
 #  I'm used to Centos - so I picked that as a base image - I also have a predefined keypair - so I associated that too 
@@ -101,7 +101,7 @@ resource "aws_launch_configuration" "tims-launch-configuration" {
   instance_type = "t2.micro"
   associate_public_ip_address = false
   key_name      = "incomprehensible-keypair"
-  security_groups = [aws_security_group.tims-sg-allow-ssh.id,aws_default_security_group.tims-default-security-group.id]
+  security_groups = [aws_security_group.tims-sg-allow-ssh.id]
   
   lifecycle {
     create_before_destroy = true
@@ -137,7 +137,7 @@ resource "aws_elb" "tims-elb" {
   idle_timeout                = 400
   connection_draining         = true
   connection_draining_timeout = 400
-  security_groups = [aws_security_group.tims-sg-allow-ssh.id,aws_default_security_group.tims-default-security-group.id]
+  security_groups = [aws_security_group.tims-sg-allow-ssh.id]
 
   listener {
     instance_port     = 22
